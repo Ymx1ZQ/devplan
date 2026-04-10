@@ -40,25 +40,51 @@ In `refactor` mode, show a diff-style preview in chat before writing.
 
 ### Phase 1: Discovery
 
-Before proposing anything, gather context:
+Before proposing anything, assess the **scale** of the request and
+gather context proportionally.
 
-1. **Project docs** — read project-level instructions (CLAUDE.md,
+#### Scale assessment
+
+Estimate the likely number of milestones from the request:
+
+| Scale | Expected milestones | Discovery depth |
+|---|---|---|
+| **Small** (bug fix, tweak, single change) | 1-2 | Minimal: devplan state + files directly involved |
+| **Medium** (feature, multi-step change) | 3-5 | Moderate: add relevant docs, git context, test inventory |
+| **Large** (refactor, new area, cross-cutting) | 6+ | Full: all sources below |
+
+#### Discovery sources (catalog — use what the scale needs)
+
+1. **Devplan state** — find existing devplan files (`DEVPLAN.md`,
+   `devplan/`, `devplan/v*.md`). Identify: current version file, last
+   milestone number (MNN), convention style, how many milestones exist.
+   *(always needed)*
+2. **Surface area** — search for files likely touched by the request.
+   Use terms from the user's description.
+   *(always needed)*
+3. **Project docs** — read project-level instructions (CLAUDE.md,
    .codex/instructions.md, or equivalent), `README.md`, and any docs
    relevant to the request (e.g. `docs/architecture.md`,
    `docs/data-model.md`).
-2. **Devplan state** — find existing devplan files (`DEVPLAN.md`,
-   `devplan/`, `devplan/v*.md`). Identify: current version file, last
-   milestone number (MNN), convention style, how many milestones exist.
-3. **Git context** — `git log --oneline -20`, `git status`, current
-   branch.
-4. **Test inventory** — scan for test directories and levels (unit,
+   *(medium+ scale)*
+4. **Git context** — `git log --oneline -20`, `git status`, current
+   branch. *(medium+ scale)*
+5. **Test inventory** — scan for test directories and levels (unit,
    integration, e2e, etc.). Note the runner and structure.
-5. **Stack detection** — identify the tech stack from manifest files
+   *(medium+ scale, or if the request is test-related)*
+6. **Stack detection** — identify the tech stack from manifest files
    (package.json, pyproject.toml, Cargo.toml, etc.).
-6. **Surface area** — search for files likely touched by the request.
-   Use terms from the user's description.
+   *(large scale, or if unfamiliar with the project)*
 
-**Output:** Write a **Discovery Brief** in chat (10-15 lines). Example:
+#### Output: Discovery Brief
+
+Write a brief in chat, scaled to the request:
+- **Small:** 3-5 lines — devplan state, files involved, done.
+- **Medium:** 6-10 lines — add context on conventions and test structure.
+- **Large:** 10-15 lines — full context including stack, architecture,
+  and git state.
+
+Example (medium):
 
 > *Repo Nuxt+FastAPI, devplan corrente `devplan/v0.3.md`, ultimo
 > milestone M47 (auth refactor, completato). Convenzione commit:
@@ -73,9 +99,17 @@ This brief proves you understood the context before proposing the plan.
 
 ### Phase 2: Clarification
 
-After discovery, identify **real ambiguities** — not courtesy questions.
+After discovery, identify ambiguities that affect the **structure** of
+the plan. Ask only when the answer changes:
 
-If ambiguities exist (max 3-5), present each as:
+- **How many milestones** (e.g. "all in one or split auth and authz?")
+- **Which modules are involved** (e.g. "backend only or also frontend?")
+- **Which architectural approach** (e.g. "new endpoint or extend existing?")
+
+**Do NOT ask** when the answer only affects implementation details
+(naming, test placement, variable choices) — the executor decides those.
+
+If structural ambiguities exist (max 3-5), present each as:
 
 ```
 1. <question>
@@ -91,7 +125,20 @@ ask questions for the sake of asking.
 
 ### Phase 3: Plan Proposal (in chat, NOT on file)
 
-Present the plan in conversation using this structure:
+Choose the template based on how many milestones the plan needs.
+
+#### Small plans (1-2 milestones)
+
+```markdown
+## Piano
+- MNN: <titolo> — <razionale 1-2 righe>
+- MNN+1: <titolo> — <razionale 1-2 righe>   (if needed)
+```
+
+No Obiettivo/Approccio/Rischi/Out of scope wrapper — the milestone
+rationale is sufficient context for small work.
+
+#### Medium and large plans (3+ milestones)
 
 ```markdown
 ## Obiettivo
@@ -127,6 +174,19 @@ Phase 4 when they explicitly approve.
 
 After approval, write the milestones to the devplan file following
 these rules:
+
+#### Pending milestone check (extend mode only)
+
+Before writing new milestones, count existing `- [ ]` (pending)
+milestones in the target file. If any exist, report them in chat
+before proceeding:
+
+> *"Ci sono N milestone pendenti (MNN–MNN+K). I nuovi milestone
+> dipendono da quelli o sono indipendenti?"*
+
+Do not block — inform and let the user decide. If the user confirms
+independence, append normally. If there are dependencies, ensure the
+new milestones come after the pending ones they depend on.
 
 #### File location
 - **`new` mode:** create `DEVPLAN.md` at the project root (or a
@@ -192,9 +252,9 @@ elsewhere (gotchas, external links, decisions to revisit later).
 
 ### Phase 5: Validation
 
-After writing, re-read the devplan file and run a self-check. Report
-results in chat:
+After writing, re-read the devplan file and run a self-check.
 
+#### Form checks
 - Every milestone has **Why**, **Approach**, **Tasks**, **Done when**
 - Every task is actionable (not vague like "improve X" or "handle Y")
 - Dependencies are resolved in order (no forward references)
@@ -202,8 +262,24 @@ results in chat:
 - The plan covers all requirements from the original request
 - No preparation-only milestones exist
 
-If anything fails, **fix it immediately** without asking — then re-run
-the check. Only report the final passing results to the user.
+#### Codebase coherence checks
+- **Files exist:** every file cited in Approach or Tasks exists in the
+  repo, or is explicitly created by a prior milestone in the plan. If a
+  milestone says "modify billing.py" but that file does not exist and no
+  earlier milestone creates it, flag and correct.
+- **Module ordering:** if multiple milestones touch the same module or
+  file, verify the order makes sense (no milestone overwrites or
+  contradicts a later one's assumptions).
+- **Convention compliance:** if the project has documented conventions
+  (CLAUDE.md, .codex/instructions.md, README), verify the plan respects
+  them (e.g. business logic goes in services/ not api/, tests go in the
+  right directories).
+
+#### Resolution
+If any check fails, **fix it immediately** without asking — then re-run
+the check. If a coherence issue cannot be auto-corrected (e.g. unclear
+whether a file will exist), add a **Notes** warning to the affected
+milestone. Only report the final passing results to the user.
 
 ---
 

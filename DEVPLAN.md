@@ -340,6 +340,65 @@ and the repo has a `v0.1` tag.
 
 ---
 
+### Phase F — Refinement
+
+#### M10: Refine DESIGN.md — adaptive discovery, scalable proposal, pending check, precise clarification, codebase-aware validation ✅
+
+**Why:** The v0.1 DESIGN.md works but has 5 weaknesses identified during
+review: discovery runs 6 mandatory steps regardless of request size, the
+proposal template is heavy for small tasks, extend mode silently ignores
+pending milestones, clarification triggers are vague, and validation only
+checks form (not substance). Fixing these makes the playbook proportional
+to the work and catches real planning errors.
+
+**Approach:** Edit both `claude/devplan/DESIGN.md` and `codex/devplan/DESIGN.md`
+in-place. All 5 fixes modify existing sections — no new sections added, the
+playbook stays at 5 phases. Changes:
+
+1. **Phase 1 (Discovery):** Add a scale assessment step at the top (small /
+   medium / large based on expected milestone count). The 6 discovery sources
+   become a catalog — the skill picks only those relevant to the scale. The
+   Discovery Brief shrinks proportionally (3-4 lines for small, 10-15 for
+   large).
+
+2. **Phase 2 (Clarification):** Replace "real ambiguities" with a concrete
+   criterion: ask only when the answer changes the **structure** of the plan
+   (number of milestones, modules involved, architectural approach). If it
+   only changes an implementation detail, don't ask — the executor decides.
+
+3. **Phase 3 (Proposal):** Add a lightweight template for 1-2 milestone plans
+   (just `MNN: title — rationale`, no Obiettivo/Approccio/Rischi/Out of scope
+   wrapper). Keep the full template for 3+ milestones.
+
+4. **Phase 4 (Write):** In extend mode, before proposing, count pending
+   `- [ ]` milestones. If any exist, report them in chat and ask whether the
+   new milestones depend on the pending ones or are independent. Don't block —
+   inform and let the user decide.
+
+5. **Phase 5 (Validation):** Add 3 substance checks after the existing form
+   checks: (a) files cited in Approach/Tasks exist in the repo or are created
+   by a prior milestone, (b) milestones touching the same module are ordered
+   sensibly, (c) plan respects project conventions from CLAUDE.md / project
+   instructions. If a check fails: auto-correct if possible, otherwise add a
+   Notes warning to the milestone.
+
+**Tasks:**
+- [x] Update Phase 1 in `claude/devplan/DESIGN.md`: add scale assessment, make sources a catalog not a checklist, scale the Discovery Brief
+- [x] Update Phase 2 in `claude/devplan/DESIGN.md`: replace "real ambiguities" with the structural-impact criterion
+- [x] Update Phase 3 in `claude/devplan/DESIGN.md`: add lightweight template for 1-2 milestone plans
+- [x] Update Phase 4 in `claude/devplan/DESIGN.md`: add pending milestone check in extend mode
+- [x] Update Phase 5 in `claude/devplan/DESIGN.md`: add 3 codebase-coherence checks
+- [x] Port all 5 changes to `codex/devplan/DESIGN.md`
+- [x] Diff both DESIGN.md files and confirm only intentional differences exist (same 7 blocks as before, all intentional)
+- [x] Commit (push skipped — no remote)
+
+**Done when:** Both DESIGN.md playbooks scale discovery and proposal to the
+request size, warn about pending milestones before extending, ask clarification
+only for structure-changing ambiguities, and validate plan coherence against
+the actual codebase — not just format.
+
+---
+
 ## Out of scope for v0.1
 
 - Publishing to a public GitHub repo (local-only for now)
