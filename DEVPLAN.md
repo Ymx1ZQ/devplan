@@ -444,7 +444,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/OWNER/devplan/main/install.s
 - [x] Test remote mode (copy `install.sh` to `/tmp`, run from there)
 - [x] Update `README.md`: add one-liner install section before the local install section
 - [x] Update `README.md`: note that remote install requires `git` and `curl`
-- [ ] Commit
+- [x] Commit
 
 **Done when:** `bash <(curl -fsSL .../install.sh)` from a machine with
 `git` and `curl` installs the skill without a prior clone, and
