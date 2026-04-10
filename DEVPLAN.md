@@ -247,7 +247,7 @@ branch.
 
 ### Phase E — Distribution
 
-#### M7: Write `install.sh`
+#### M7: Write `install.sh` ✅
 
 **Why:** Without an installer the only way to use the skill is manual copy.
 The installer is the user-facing distribution surface and must work for
@@ -267,13 +267,13 @@ print a clear success message with the install path, exit non-zero on any
 failure.
 
 **Tasks:**
-- [ ] Write `install.sh` with the 3 flag modes + `--force`
-- [ ] Add `set -euo pipefail` and proper error handling
-- [ ] Add prompt-before-overwrite logic
-- [ ] Add success/failure messages with absolute paths
-- [ ] `chmod +x install.sh`
-- [ ] Manual dry-run test (run with a fake `HOME` to verify it copies into the right place)
-- [ ] Commit & push
+- [x] Write `install.sh` with the 3 flag modes + `--force`
+- [x] Add `set -euo pipefail` and proper error handling
+- [x] Add prompt-before-overwrite logic
+- [x] Add success/failure messages with absolute paths
+- [x] `chmod +x install.sh`
+- [x] Manual dry-run test (run with a fake `HOME` to verify it copies into the right place)
+- [x] Commit (push skipped — no remote)
 
 **Done when:** Running `./install.sh all` from a clean checkout installs both
 variants into `~/.claude/skills/devplan/` and `~/.codex/skills/devplan/` with
