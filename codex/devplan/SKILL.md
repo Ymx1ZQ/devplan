@@ -18,6 +18,14 @@ This skill has three modes:
   tests covering the finished code, simplify, docs, devplan, commit &
   push. Use for exploratory work (spikes, prototypes, investigations).
 
+## Scope
+
+This skill covers ALL code changes — features, refactors, AND bug fixes.
+Bug fixes are not exempt from the devplan workflow. A bug fix is a small
+plan (`design` mode detects this automatically via scale assessment).
+The rule is: investigate freely, but write to devplan and get approval
+before changing any code.
+
 ## Mode selection
 
 Parse the first token of the args:
@@ -30,7 +38,14 @@ Parse the first token of the args:
   o eseguire? Per l'esecuzione: `TDD` (raccomandato) o `IDD`
   (esplorativo)."*
 
-A token is a devplan path if it contains `.md` or `/`.
+A token counts as a devplan path if any of these are true:
+
+- it contains `/`
+- it ends with `.md` or `.markdown` (case-insensitive)
+- its basename starts with `DEVPLAN` (case-insensitive)
+
+If the token is ambiguous, prefer asking once rather than silently routing to
+the wrong mode.
 
 ## Routing
 
@@ -40,4 +55,5 @@ A token is a devplan path if it contains `.md` or `/`.
    - design → `DESIGN.md` (in this skill directory)
    - TDD → `TDD.md` (in this skill directory)
    - IDD → `IDD.md` (in this skill directory)
-3. Follow that playbook end-to-end. Do not load any other playbook.
+3. Follow that playbook end-to-end. Do not load any other playbook unless the
+   chosen playbook explicitly instructs a per-milestone fallback.

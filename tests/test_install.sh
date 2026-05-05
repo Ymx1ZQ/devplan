@@ -22,6 +22,23 @@ cleanup() {
     rm -rf "$dir"
 }
 
+create_snapshot_repo() {
+    local snapshot_root snapshot_repo
+    snapshot_root="$(mktemp -d)"
+    snapshot_repo="$snapshot_root/repo"
+    cp -R "$REPO_ROOT" "$snapshot_repo"
+    rm -rf "$snapshot_repo/.git"
+    (
+        cd "$snapshot_repo"
+        git init -q
+        git config user.name "devplan-test"
+        git config user.email "devplan-test@example.com"
+        git add -A
+        git commit -qm "snapshot"
+    )
+    echo "$snapshot_root"
+}
+
 assert_dir_exists() {
     local path="$1" label="$2"
     if [ -d "$path" ]; then
@@ -138,11 +155,14 @@ cleanup "$FAKE_HOME"
 echo ""
 echo "=== Remote mode tests ==="
 
+SNAPSHOT_ROOT="$(create_snapshot_repo)"
+SNAPSHOT_REPO="$SNAPSHOT_ROOT/repo"
+
 echo "--- T5: remote mode detects missing source dirs and clones ---"
 FAKE_HOME="$(setup_fake_home)"
 ISOLATED="$(mktemp -d)"
 cp "$INSTALL_SH" "$ISOLATED/install.sh"
-HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$REPO_ROOT" bash "$ISOLATED/install.sh" --force claude
+HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$SNAPSHOT_REPO" bash "$ISOLATED/install.sh" --force claude
 assert_dir_exists "$FAKE_HOME/.claude/skills/devplan" "claude dir installed via remote mode"
 assert_file_exists "$FAKE_HOME/.claude/skills/devplan/SKILL.md" "SKILL.md present (remote)"
 assert_file_exists "$FAKE_HOME/.claude/skills/devplan/TDD.md" "TDD.md present (remote)"
@@ -153,7 +173,7 @@ echo "--- T6: remote mode installs all ---"
 FAKE_HOME="$(setup_fake_home)"
 ISOLATED="$(mktemp -d)"
 cp "$INSTALL_SH" "$ISOLATED/install.sh"
-HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$REPO_ROOT" bash "$ISOLATED/install.sh" --force all
+HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$SNAPSHOT_REPO" bash "$ISOLATED/install.sh" --force all
 assert_dir_exists "$FAKE_HOME/.claude/skills/devplan" "claude dir installed (remote all)"
 assert_dir_exists "$FAKE_HOME/.codex/skills/devplan" "codex dir installed (remote all)"
 cleanup "$FAKE_HOME"
@@ -165,7 +185,7 @@ find "${TMPDIR:-/tmp}" -maxdepth 1 -name "devplan-install-*" -type d -exec rm -r
 FAKE_HOME="$(setup_fake_home)"
 ISOLATED="$(mktemp -d)"
 cp "$INSTALL_SH" "$ISOLATED/install.sh"
-HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$REPO_ROOT" bash "$ISOLATED/install.sh" --force claude
+HOME="$FAKE_HOME" DEVPLAN_REPO_URL="$SNAPSHOT_REPO" bash "$ISOLATED/install.sh" --force claude
 # The script should not leave devplan-install-* dirs in /tmp
 assert_no_temp_dirs "devplan-install-*" "no temp dirs left behind"
 cleanup "$FAKE_HOME"
@@ -177,7 +197,7 @@ REMOTE_HOME="$(setup_fake_home)"
 ISOLATED="$(mktemp -d)"
 cp "$INSTALL_SH" "$ISOLATED/install.sh"
 HOME="$LOCAL_HOME" bash "$INSTALL_SH" --force all
-HOME="$REMOTE_HOME" DEVPLAN_REPO_URL="$REPO_ROOT" bash "$ISOLATED/install.sh" --force all
+HOME="$REMOTE_HOME" DEVPLAN_REPO_URL="$SNAPSHOT_REPO" bash "$ISOLATED/install.sh" --force all
 assert_files_identical \
     "$LOCAL_HOME/.claude/skills/devplan" \
     "$REMOTE_HOME/.claude/skills/devplan" \
@@ -189,6 +209,7 @@ assert_files_identical \
 cleanup "$LOCAL_HOME"
 cleanup "$REMOTE_HOME"
 cleanup "$ISOLATED"
+cleanup "$SNAPSHOT_ROOT"
 
 # --- summary ---
 

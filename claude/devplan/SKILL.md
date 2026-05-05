@@ -18,6 +18,14 @@ This skill has three modes:
   tests covering the finished code, simplify, docs, devplan, commit &
   push. Use for exploratory work (spikes, prototypes, investigations).
 
+## Scope
+
+This skill covers ALL code changes — features, refactors, AND bug fixes.
+Bug fixes are not exempt from the devplan workflow. A bug fix is a small
+plan (`design` mode detects this automatically via scale assessment).
+The rule is: investigate freely, but write to devplan and get approval
+before changing any code.
+
 ## Mode selection
 
 Parse the first token of the args:

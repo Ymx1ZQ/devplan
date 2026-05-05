@@ -1,8 +1,7 @@
 # devplan — Codex variant
 
 A [Codex](https://openai.com/codex) skill that handles the full devplan
-lifecycle: planning (`design`) and execution (`TDD` / `IDD`), fully
-autonomously — no interruptions, no confirmation prompts.
+lifecycle: planning (`design`) and execution (`TDD` / `IDD`).
 
 > This is the Codex variant of the unified `devplan` skill.
 > See the [project README](../../README.md) for the full picture.
@@ -12,7 +11,7 @@ autonomously — no interruptions, no confirmation prompts.
 When invoked, `devplan` routes to one of three modes:
 
 - **`design`** — creates or updates a dev plan through a structured
-  discovery → proposal → write → validation workflow.
+  discovery → proposal → approval → write → validation workflow.
 - **`TDD` (Test Driven Development) — DEFAULT.** For each milestone:
   state the business requirement → write tests at all applicable levels
   → confirm they fail (red) → implement until green → simplify → docs
@@ -30,13 +29,18 @@ In execution modes (TDD/IDD) the skill:
 5. Commits and pushes after each milestone
 6. Moves immediately to the next milestone without asking
 
-It stops only on real blockers (missing requirements, conflicts with unknown user work, escalation needed).
+Design mode still waits for explicit approval before writing the devplan file.
+Execution modes are highly autonomous, but they still stop on real blockers
+(missing requirements, conflicts with unknown user work, repo/session limits,
+commit/push/auth issues).
 
 ## Requirements
 
 - [Codex](https://openai.com/codex) CLI installed and authenticated
 - A project with a `DEVPLAN.md` (or equivalent Markdown plan file)
 - Git initialized and a remote configured (for push)
+- Any repo-local instructions checked first (`AGENTS.md`, `.codex/instructions.md`,
+  project README, contributor docs)
 
 ## Installation
 
@@ -85,25 +89,38 @@ $devplan                           # asks which mode to use
 - Pending milestones should use `- [ ]` checkboxes; completed ones use `- [x]`
 - The skill respects your project's existing test structure (unit, integration, e2e, etc.)
 - If you need to pause mid-run, just interrupt Codex
+- Prefer the structured milestone format shown below; it gives Codex enough
+  context to execute without guessing
+- Simpler plans can be executed only when the milestone intent is already clear
 
 ## Devplan format
 
-The skill works with any Markdown file that has milestone headings and checkbox task lists. A minimal example:
+The executor is most reliable when each milestone includes explicit intent and
+exit criteria. Preferred format:
 
 ```markdown
-# My Project Dev Plan
+## M12: Add retry handling to webhook delivery
 
-## M1: Add user authentication
-- [ ] Implement login endpoint
-- [ ] Add JWT token generation
-- [ ] Write unit tests
+**Why:** Failed deliveries currently require manual recovery. The system should
+retry transient failures automatically.
 
-## M2: Add password reset flow
-- [ ] Send reset email
-- [ ] Implement token validation
+**Approach:** Extend the delivery worker to classify retryable failures, persist
+attempt state, and expose retry outcomes in the admin view.
+
+**Tasks:**
+- [ ] Persist delivery attempt metadata
+- [ ] Retry transient failures with bounded backoff
+- [ ] Test: integration — delivery succeeds after a transient failure
+- [ ] Update docs/webhooks.md if operator behavior changes
+- [ ] Commit & push
+
+**Done when:** A transient network failure is retried automatically and the
+relevant tests are green.
 ```
 
-No specific format is required beyond readable headings and checkboxes.
+Simpler Markdown plans with milestone headings and checkboxes can still work,
+but only when the milestone requirement is unambiguous enough for TDD/IDD
+execution.
 
 ## License
 

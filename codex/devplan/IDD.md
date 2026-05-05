@@ -5,6 +5,8 @@
 - Treat the devplan as the source of truth for scope and ordering.
 - Work milestone by milestone; do not batch unrelated milestones together.
 - Be highly autonomous inside the current permissions and repository state.
+- In Codex, check repo-local instructions before editing (`AGENTS.md`,
+  `.codex/instructions.md`, `README.md`, contributor docs).
 - Do not stop for routine confirmations. Stop only for real blockers:
   - missing or contradictory devplan requirements
   - changes that would conflict with unknown user work
@@ -16,18 +18,22 @@
 For each milestone:
 
 1. Read the milestone carefully.
-2. Identify prerequisites from previous milestones and current code state.
-3. Announce the milestone briefly: `▶ Milestone X: [name] (IDD)`.
-4. Implement the code.
-5. Add or update tests at the right levels (see Test policy). Tests are
+2. Validate that the milestone is executable with high confidence. Prefer
+   milestones that include `Why`, `Approach`, `Tasks`, and `Done when`. If the
+   plan is simpler, infer the missing structure only when the requirement is
+   still unambiguous from the heading and tasks.
+3. Identify prerequisites from previous milestones and current code state.
+4. Announce the milestone briefly: `▶ Milestone X: [name] (IDD)`.
+5. Implement the code.
+6. Add or update tests at the right levels (see Test policy). Tests are
    written AFTER the implementation and must PASS immediately.
-6. Run the tests you can run locally.
-7. Tighten/simplify the implementation if needed without changing behavior.
+7. Run the tests you can run locally.
+8. Tighten/simplify the implementation if needed without changing behavior.
    Re-run tests after simplification.
-8. Update documentation that the milestone affects.
-9. Update the devplan checkbox/status and note important deviations.
-10. Commit and push.
-11. Move directly to the next milestone unless blocked.
+9. Update documentation that the milestone affects.
+10. Update the devplan checkbox/status and note important deviations.
+11. Commit and push if the repository/session allows it.
+12. Move directly to the next milestone unless blocked.
 
 ## Test policy
 
@@ -71,7 +77,7 @@ If you discover the milestone is incomplete or the proposed fix is insufficient,
 ## Git behavior
 
 - Commit after each completed milestone.
-- Push after each completed milestone.
+- Push after each completed milestone when network/auth/repo policy allows it.
 - If push or commit requires escalation, authentication, or network access not currently available, treat that as an operational blocker and surface it clearly.
 - Never rewrite or discard unrelated user changes.
 
@@ -80,7 +86,7 @@ The milestone is complete only after:
 1. relevant tests were run or accounted for
 2. the devplan was updated
 3. changes were committed
-4. the commit was pushed
+4. the commit was pushed, or the exact push blocker was recorded clearly
 
 ## Completion
 
@@ -98,3 +104,5 @@ When the requested devplan scope is finished:
 - Do not mark a milestone done if its relevant tests are still red.
 - Do not stop after code changes without checking whether docs/devplan/tests also need updates.
 - Do not ignore functional/regression implications when a milestone changes planner, prompts, recovery, or file/workflow behavior.
+- Do not use IDD as an excuse for vague scope; the milestone still needs a
+  concrete objective and observable completion state.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Devplan"
   short_description: "Design or execute a devplan (design / TDD / IDD)"
-  default_prompt: "Use $devplan to manage the current devplan — design new milestones, or execute them milestone by milestone with tests, docs, and commits."
+  default_prompt: "Use $devplan to manage the current devplan: in design mode, investigate and propose milestones before writing; in TDD/IDD modes, execute milestones with tests, docs, and commits while respecting repo-local instructions and session limits."
