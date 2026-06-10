@@ -731,6 +731,25 @@ pointer, manual no-write, --check drift).
 claude/codex/opencode/gemini/agents/manual, `--check` detects drift per
 target, and the test suite is green.
 
+#### M18: CI — run the test suite on push ✅
+
+**Why:** code-audit and deck got GitHub Actions in this session; devplan's
+suite only runs locally. devplan is pure Markdown + a bash installer with
+no external dependencies, so CI is a clean `bash tests/test_install.sh`
+on every push — no best-effort dep installs needed.
+
+**Approach:** `.github/workflows/tests.yml` on push-to-main + PR,
+ubuntu-latest, `actions/checkout@v5`, run `bash tests/test_install.sh`.
+README gains a one-line CI note.
+
+**Tasks:**
+- [x] `.github/workflows/tests.yml` — checkout@v5 + run tests/test_install.sh
+- [x] README: note CI runs the installer suite on push
+- [x] Local suite still green; workflow YAML valid
+
+**Done when:** the workflow runs `tests/test_install.sh` on push and is
+green; a hand-broken installer would red the build.
+
 ## Out of scope for v0.3
 
 - Per-assistant behavior divergence (the whole point is one payload).

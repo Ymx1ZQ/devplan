@@ -117,6 +117,14 @@ skills, or use `install.sh`.
 
 - [Skill payload README](devplan/README.md)
 
+## Tests
+
+```bash
+bash tests/test_install.sh
+```
+
+CI (GitHub Actions) runs this suite on every push and PR.
+
 ## License
 
 MIT
