@@ -548,11 +548,16 @@ without modifying anything; cover it with tests (fresh install →
 clean; hand-edited installed file → drift reported, non-zero exit).
 
 **Tasks:**
-- [ ] Test: lockstep identity of the four behavior files
-- [ ] Implement `install.sh --check` (no-write, reports per-variant drift, exit 1 on drift)
-- [ ] Tests: `--check` clean after install; `--check` detects a modified installed file
-- [ ] Document `--check` in root README
-- [ ] Commit & push
+- [x] Test: lockstep identity of the four behavior files (`tests/test_lockstep.sh`)
+- [x] Implement `install.sh --check` (no-write, reports per-variant drift, exit 1 on drift)
+- [x] Tests: `--check` clean after install; `--check` detects a modified installed file; `--check` on missing install (T9-T11)
+- [x] Document `--check` + tests/ dir in root README
+- [x] Commit & push
+
+**Notes:** Executed in TDD mode — T9-T11 written first and confirmed
+red ("Unknown argument: --check"), then `--check` implemented to green
+(24/24 + lockstep 4/4). Lockstep red-path verified manually by editing
+one variant file and watching the test fail.
 
 **Done when:** test suite green including the new cases; editing one variant file by hand makes the lockstep test fail; `install.sh --check` distinguishes clean from drifted installs.
 

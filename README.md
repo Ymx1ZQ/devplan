@@ -37,7 +37,13 @@ From a local clone:
 ./install.sh claude     # Claude Code only
 ./install.sh codex      # Codex only
 ./install.sh --force    # overwrite existing install without prompting
+./install.sh --check    # compare installed copies against the source tree
 ```
+
+`--check` makes no changes: it reports `OK` or `DRIFT` per variant and
+exits non-zero if an installed copy differs from the source (or is
+missing) — useful to spot hand-edited installs before they get wiped
+by the next `--force`.
 
 The installer copies the skill files into the target tool's skill directory:
 - Claude Code: `~/.claude/skills/devplan/`
@@ -100,6 +106,7 @@ devplan/
 ├── README.md          ← you are here
 ├── install.sh         ← installer script
 ├── DEVPLAN.md         ← this project's own dev plan
+├── tests/             ← installer + lockstep test suites (bash tests/test_*.sh)
 ├── claude/
 │   └── devplan/       ← Claude Code variant (→ ~/.claude/skills/devplan/)
 │       ├── SKILL.md   ← router (design / TDD / IDD)

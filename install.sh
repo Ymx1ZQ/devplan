@@ -54,8 +54,32 @@ TARGET:
 
 OPTIONS:
   --force   Overwrite existing installation without prompting
+  --check   Compare installed copies against the source tree (no writes);
+            exits 1 and reports DRIFT if they differ or are missing
   --help    Show this help message
 EOF
+}
+
+check_variant() {
+    local src="$1"
+    local dest="$2"
+    local name="$3"
+
+    if [ ! -d "$dest" ]; then
+        echo "DRIFT: $name is not installed at $dest"
+        return 1
+    fi
+
+    local diff_out
+    diff_out="$(diff -r "$src" "$dest" 2>&1)" || true
+    if [ -n "$diff_out" ]; then
+        echo "DRIFT: $name at $dest differs from the source tree:"
+        echo "$diff_out" | head -10
+        return 1
+    fi
+
+    echo "OK: $name matches the source tree ($dest)"
+    return 0
 }
 
 confirm_overwrite() {
@@ -95,9 +119,11 @@ install_variant() {
 
 # Parse arguments
 TARGET="all"
+CHECK=false
 for arg in "$@"; do
     case "$arg" in
         --force)  FORCE=true ;;
+        --check)  CHECK=true ;;
         --help)   usage; exit 0 ;;
         claude)   TARGET="claude" ;;
         codex)    TARGET="codex" ;;
@@ -109,6 +135,23 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+if [ "$CHECK" = true ]; then
+    STATUS=0
+    case "$TARGET" in
+        claude)
+            check_variant "$CLAUDE_SRC" "$CLAUDE_DEST" "devplan (Claude Code)" || STATUS=1
+            ;;
+        codex)
+            check_variant "$CODEX_SRC" "$CODEX_DEST" "devplan (Codex)" || STATUS=1
+            ;;
+        all)
+            check_variant "$CLAUDE_SRC" "$CLAUDE_DEST" "devplan (Claude Code)" || STATUS=1
+            check_variant "$CODEX_SRC" "$CODEX_DEST" "devplan (Codex)" || STATUS=1
+            ;;
+    esac
+    exit "$STATUS"
+fi
 
 # Install
 case "$TARGET" in

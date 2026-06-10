@@ -98,6 +98,22 @@ assert_exit_zero() {
     fi
 }
 
+assert_cmd_output() {
+    # Run a command, assert expected exit code AND that output contains a string.
+    local expected_exit="$1" needle="$2" label="$3"
+    shift 3
+    local out rc=0
+    out="$("$@" 2>&1)" || rc=$?
+    if [ "$rc" -eq "$expected_exit" ] && printf "%s" "$out" | grep -q "$needle"; then
+        echo "  PASS: $label"
+        PASS=$((PASS + 1))
+    else
+        echo "  FAIL: $label — exit=$rc (expected $expected_exit), output:"
+        printf "%s\n" "$out" | head -5
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 assert_no_temp_dirs() {
     local pattern="$1" label="$2"
     local found
@@ -210,6 +226,32 @@ cleanup "$LOCAL_HOME"
 cleanup "$REMOTE_HOME"
 cleanup "$ISOLATED"
 cleanup "$SNAPSHOT_ROOT"
+
+# --- DRIFT CHECK tests (--check) ---
+
+echo ""
+echo "=== Drift check tests ==="
+
+echo "--- T9: --check clean after fresh install ---"
+FAKE_HOME="$(setup_fake_home)"
+HOME="$FAKE_HOME" bash "$INSTALL_SH" --force all
+assert_cmd_output 0 "OK" "--check exits 0 and reports OK on a fresh install" \
+    env HOME="$FAKE_HOME" bash "$INSTALL_SH" --check all
+cleanup "$FAKE_HOME"
+
+echo "--- T10: --check detects a modified installed file ---"
+FAKE_HOME="$(setup_fake_home)"
+HOME="$FAKE_HOME" bash "$INSTALL_SH" --force all
+echo "local hand-edit" >> "$FAKE_HOME/.claude/skills/devplan/TDD.md"
+assert_cmd_output 1 "DRIFT" "--check exits 1 and reports DRIFT on a hand-edited file" \
+    env HOME="$FAKE_HOME" bash "$INSTALL_SH" --check all
+cleanup "$FAKE_HOME"
+
+echo "--- T11: --check reports a missing install ---"
+FAKE_HOME="$(setup_fake_home)"
+assert_cmd_output 1 "DRIFT" "--check exits 1 when the skill is not installed" \
+    env HOME="$FAKE_HOME" bash "$INSTALL_SH" --check claude
+cleanup "$FAKE_HOME"
 
 # --- summary ---
 
