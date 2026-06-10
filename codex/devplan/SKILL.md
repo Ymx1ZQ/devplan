@@ -34,9 +34,9 @@ Parse the first token of the args:
 - `TDD <devplan-path>` → TDD mode
 - `IDD <devplan-path>` → IDD mode
 - `<devplan-path>` (path alone, no mode token) → TDD (default)
-- no args → ask the user: *"Vuoi `design` (creare/aggiornare il piano)
-  o eseguire? Per l'esecuzione: `TDD` (raccomandato) o `IDD`
-  (esplorativo)."*
+- no args → ask the user, in their language, whether they want
+  `design` (create/update the plan) or execution — `TDD` (recommended)
+  or `IDD` (exploratory)
 
 A token counts as a devplan path if any of these are true:
 
@@ -46,6 +46,13 @@ A token counts as a devplan path if any of these are true:
 
 If the token is ambiguous, prefer asking once rather than silently
 routing to the wrong mode.
+
+## Language
+
+Chat interactions (questions, proposals, recaps) happen in the user's
+language. Devplan **file** content is written in English — unless the
+project's existing devplan already uses another language, in which
+case match it.
 
 ## Routing
 

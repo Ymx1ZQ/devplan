@@ -9,8 +9,9 @@ write milestones. You never touch application code.
 ## General Behavior
 
 - **Never write to the devplan file without explicit approval.** Propose
-  in chat first, iterate with the user, write only when they say "ok",
-  "vai", "scrivi", "procedi", or equivalent.
+  in chat first, iterate with the user, write only on an explicit
+  go-ahead in the user's language (e.g. "ok", "go ahead", "write it",
+  "vai", "procedi").
 - If something is ambiguous, ask — but offer concrete options, not open
   questions.
 - Stop and ask the user only for genuine blockers or decisions you
@@ -80,6 +81,11 @@ Estimate the likely number of milestones from the request:
 6. **Stack detection** — identify the tech stack from manifest files
    (package.json, pyproject.toml, Cargo.toml, etc.).
    *(large scale, or if unfamiliar with the project)*
+7. **Workspace detection** — if the working directory contains multiple
+   git checkouts (sibling-repo workspace), enumerate them, confirm with
+   the user which repos are in scope, and locate where the devplan
+   lives (it may sit in one repo while planning work across several).
+   *(when the request spans more than one repo)*
 
 #### Output: Discovery Brief
 
@@ -91,12 +97,12 @@ Write a brief in chat, scaled to the request:
 
 Example (medium):
 
-> *Repo Nuxt+FastAPI, devplan corrente `devplan/v0.3.md`, ultimo
-> milestone M47 (auth refactor, completato). Convenzione commit:
-> `MNN: titolo`. Test: pytest unit/integration + Playwright e2e. La
-> richiesta tocca probabilmente `backend/app/api/billing.py` e
-> `frontend/pages/checkout.vue`. Nessun lavoro in corso su quei file
-> (git status pulito).*
+> *Nuxt+FastAPI repo, current devplan `devplan/v0.3.md`, last
+> milestone M47 (auth refactor, completed). Commit convention:
+> `MNN: title`. Tests: pytest unit/integration + Playwright e2e. The
+> request likely touches `backend/app/api/billing.py` and
+> `frontend/pages/checkout.vue`. No work in progress on those files
+> (clean git status).*
 
 This brief proves you understood the context before proposing the plan.
 
@@ -135,39 +141,43 @@ Choose the template based on how many milestones the plan needs.
 #### Small plans (1-2 milestones)
 
 ```markdown
-## Piano
-- MNN: <titolo> — <razionale 1-2 righe>
-- MNN+1: <titolo> — <razionale 1-2 righe>   (if needed)
+## Plan
+- MNN: <title> — <rationale, 1-2 lines>
+- MNN+1: <title> — <rationale, 1-2 lines>   (if needed)
 ```
 
-No Obiettivo/Approccio/Rischi/Out of scope wrapper — the milestone
+No Objective/Approach/Risks/Out-of-scope wrapper — the milestone
 rationale is sufficient context for small work.
 
 #### Medium and large plans (3+ milestones)
 
 ```markdown
-## Obiettivo
-1-2 righe: cosa stiamo facendo e perché (il "why" del business/tech)
+## Objective
+1-2 lines: what we are doing and why (the business/tech "why")
 
-## Approccio
-3-5 righe: la strategia tecnica scelta, e perché tra le alternative
-considerate. Eventuali trade-off espliciti.
+## Approach
+3-5 lines: the chosen technical strategy, and why it won over the
+alternatives considered. Explicit trade-offs if any.
 
-## Rischi
-Lista concisa di cosa può andare storto e come la mitighiamo
-(o cosa accettiamo come rischio).
+## Risks
+Concise list of what can go wrong and how we mitigate it
+(or what we accept as risk).
 
-## Fasi
-### Fase A — <nome breve>
-- MNN: <titolo> — <razionale 1 riga>
-- MNN+1: <titolo> — <razionale 1 riga>
+## Phases
+### Phase A — <short name>
+- MNN: <title> — <rationale, 1 line>
+- MNN+1: <title> — <rationale, 1 line>
 
-### Fase B — <nome breve>
+### Phase B — <short name>
 - MNN+2: ...
 
 ## Out of scope
-Cosa esplicitamente NON facciamo in questo piano (per evitare scope creep).
+What this plan explicitly does NOT do (to prevent scope creep).
 ```
+
+Present the proposal in the user's language (per the Language rule in
+`SKILL.md`); the structure above is what matters, not the literal
+section titles.
 
 **Wait for the user's approval before writing anything to file.**
 Iterate on the proposal if the user gives feedback. Only proceed to
@@ -186,8 +196,8 @@ Before writing new milestones, count existing `- [ ]` (pending)
 milestones in the target file. If any exist, report them in chat
 before proceeding:
 
-> *"Ci sono N milestone pendenti (MNN–MNN+K). I nuovi milestone
-> dipendono da quelli o sono indipendenti?"*
+> *"There are N pending milestones (MNN-MNN+K). Do the new milestones
+> depend on them, or are they independent?"* (in the user's language)
 
 Do not block — inform and let the user decide. If the user confirms
 independence, append normally. If there are dependencies, ensure the
@@ -251,9 +261,9 @@ elsewhere (gotchas, external links, decisions to revisit later).
 #### Version management
 - When the current version file reaches approximately 50 milestones,
   **suggest in chat** that the user may want to close this version and
-  open a new one. Frame it as a suggestion, not a decision: *"Il file
-  ha ~50 milestone — vuoi chiudere questa versione e aprire una nuova
-  (es. v0.4.md), o preferisci continuare qui?"*. The user decides.
+  open a new one. Frame it as a suggestion, not a decision: *"The file
+  has ~50 milestones — do you want to close this version and open a new
+  one (e.g. v0.4.md), or keep going here?"*. The user decides.
 - Never close a version or create a new version file on your own.
 
 ---
@@ -300,6 +310,9 @@ If any check fails, **fix it immediately** without asking — then re-run
 the check. If a coherence issue cannot be auto-corrected (e.g. unclear
 whether a file will exist), add a **Notes** warning to the affected
 milestone. Only report the final passing results to the user.
+
+Close by suggesting the execution handoff: `/devplan TDD <path>`
+(or `IDD` for exploratory plans).
 
 ---
 

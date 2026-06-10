@@ -624,12 +624,16 @@ DESIGN.md phase 5: after validation passes, suggest the execution
 handoff (`/devplan TDD <path>`). Sync to codex/.
 
 **Tasks:**
-- [ ] SKILL.md: language-adaptive rule; router question + approval words become language-neutral with examples
-- [ ] DESIGN.md: proposal template section names language-adaptive (keep structure)
-- [ ] DESIGN.md: multi-repo workspace bullet in discovery sources
-- [ ] DESIGN.md: execution-handoff suggestion at the end of validation
-- [ ] Sync to codex/, lockstep test green
-- [ ] Commit & push
+- [x] SKILL.md: language-adaptive rule (new `## Language` section); router question + approval words language-neutral with examples
+- [x] DESIGN.md: proposal templates, pending-milestone question, version suggestion, Discovery Brief example in English; "present in the user's language" note added
+- [x] DESIGN.md: multi-repo workspace bullet in discovery sources (source 7)
+- [x] DESIGN.md: execution-handoff suggestion at the end of validation
+- [x] Sync to codex/, lockstep test green
+- [x] Commit & push
+
+**Notes:** Executed in IDD mode. "Done when" verified: no prescriptive
+Italian remains in behavior files (Italian survives only as examples of
+approval words), suite green (4 lockstep + 24 install).
 
 **Done when:** no prescriptive Italian remains in behavior files,
 discovery handles a multi-repo workspace, design mode ends with the
