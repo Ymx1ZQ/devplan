@@ -1,6 +1,6 @@
 ---
 name: devplan
-description: Design or execute a Markdown dev plan. Routes to one of three modes — `design` (create/update the plan), `TDD` (test-first execution, recommended default), or `IDD` (implementation-first execution for exploratory work). Use when the user wants to plan work, or execute an existing DEVPLAN.md milestone by milestone.
+description: Design or execute a Markdown dev plan. Routes to one of three modes — `design` (create/update the plan), `TDD` (test-first execution, recommended default), or `IDD` (implementation-first execution for exploratory work). Use when the user wants to plan work, or execute an existing devplan milestone by milestone with strong autonomy.
 ---
 
 # Devplan — Router
@@ -38,14 +38,23 @@ Parse the first token of the args:
   o eseguire? Per l'esecuzione: `TDD` (raccomandato) o `IDD`
   (esplorativo)."*
 
-A token is a devplan path if it contains `.md` or `/`.
+A token counts as a devplan path if any of these are true:
+
+- it contains `/`
+- it ends with `.md` or `.markdown` (case-insensitive)
+- its basename starts with `DEVPLAN` (case-insensitive)
+
+If the token is ambiguous, prefer asking once rather than silently
+routing to the wrong mode.
 
 ## Routing
 
 1. Announce the mode at the very start: `Mode: design`, `Mode: TDD`,
    or `Mode: IDD`.
-2. Read the corresponding playbook file with the Read tool:
-   - design → `DESIGN.md` (in this skill directory)
-   - TDD → `TDD.md` (in this skill directory)
-   - IDD → `IDD.md` (in this skill directory)
-3. Follow that playbook end-to-end. Do not load any other playbook.
+2. Read the corresponding playbook file (in this skill directory):
+   - design → `DESIGN.md`
+   - TDD → `TDD.md`
+   - IDD → `IDD.md`
+3. Follow that playbook end-to-end. Do not load any other playbook
+   unless the chosen playbook explicitly instructs a per-milestone
+   fallback.

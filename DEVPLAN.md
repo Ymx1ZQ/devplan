@@ -465,3 +465,168 @@ Test suite: 21 tests (14 local, 7 remote), all green.
 - Support for skill systems other than Claude Code and Codex
 - Auto-update mechanism
 - Telemetry of any kind
+
+---
+
+## v0.2 — Variant convergence + executor hardening
+
+**Obiettivo:** the 2026-06-10 self-audit found the repo's core promise
+(claude/codex lockstep) already broken — the Codex playbooks were
+improved (executability validation, implementation standards, git
+behavior with completion criteria, better path routing) without
+backporting to Claude — plus real defects in the executors (`git add
+-A` swallows unrelated work, the "Done when" contract is declared in
+DESIGN.md but never verified, commit convention hardcoded, no resume
+protocol) and Italian hardcoded in a published skill.
+
+**Approccio:** instead of templating/build machinery, make the four
+behavior files (`SKILL.md`, `DESIGN.md`, `TDD.md`, `IDD.md`)
+**variant-neutral and byte-identical** across `claude/` and `codex/`
+(variant differences are small enough to phrase inline: "CLAUDE.md for
+Claude Code, AGENTS.md for Codex"), then enforce identity with a test.
+This kills the drift bug class with zero build complexity. READMEs and
+`agents/openai.yaml` stay per-variant. Content fixes land on the
+unified files once.
+
+**Rischi:** merging the two playbook generations could lose a nuance
+one variant had — mitigated by diffing both sources section by section
+during the merge. Inline dual-variant phrasing adds a few lines per
+file — accepted, it's cheaper than a build step.
+
+### Phase G — Convergence
+
+#### M12: Reconcile variant drift — variant-neutral canonical playbooks
+
+**Why:** The Codex variant evolved past the Claude one (the one
+actually used daily); the improvements are objectively better and the
+split is the defect. One canonical text per playbook restores parity
+and becomes the base every later fix lands on once.
+
+**Approach:** For each of SKILL.md, DESIGN.md, TDD.md, IDD.md: take
+the richer variant as base, merge what the other had that it lacks,
+neutralize variant-specific wording inline (instruction-file names,
+`/simplify` if available, tool-agnostic search wording). Codex's
+superior content adopted: path-token detection + ambiguity rule and
+fallback clause (SKILL), milestone executability validation with
+structure inference for simple plans, implementation standards, git
+behavior incl. push-blocker recording and "never discard unrelated
+user changes" (replaces `git add -A`), resumable-devplan standard,
+completion report with tests-not-run + residual risks (TDD/IDD).
+Claude's kept: pre-approved autonomy block, red-check exemption,
+`/simplify` step, recap template, IDD-fallback detail. Write once into
+`claude/devplan/`, copy to `codex/devplan/`.
+
+**Tasks:**
+- [x] Merge + neutralize `SKILL.md` (claude base + codex routing improvements)
+- [x] Merge + neutralize `TDD.md` (codex structure + claude specifics)
+- [x] Merge + neutralize `IDD.md` (same approach)
+- [x] Neutralize `DESIGN.md` (claude base is canonical post-M10; inline both instruction-file conventions, tool-agnostic wording)
+- [x] Copy the four files to `codex/devplan/`, verify byte-identical
+- [x] Check both variant READMEs + root README for statements the merge contradicts; fix (claude README `/simplify` line made conditional; codex README + root README already neutral)
+- [x] Commit & push
+
+**Notes:** Executed in IDD mode (content authoring — the testable
+contract lands in M13's lockstep test). Merged TDD/IDD keep the
+numbered-step structure with shared `Test policy` / `Implementation
+standards` sections from the Codex lineage; `git add -A` replaced by
+"stage the milestone's changes" + "never rewrite or discard unrelated
+user changes" (M14 adds the preflight).
+
+**Done when:** `diff claude/devplan/{SKILL,DESIGN,TDD,IDD}.md codex/devplan/` is empty and each merged file contains the named improvements from both lineages.
+
+#### M13: Lockstep guard — identity test + install drift check
+
+**Why:** M12 restores parity; without a mechanical guard it re-breaks
+on the next edit, exactly like it did in v0.1.
+
+**Approach:** Extend the existing bash test suite with a lockstep
+check (the four behavior files byte-identical across variants) wired
+into `tests/test_install.sh` style. Add `install.sh --check`: compare
+the installed copies under `~/.claude/skills/devplan/` and
+`~/.codex/skills/devplan/` against the source tree and report drift
+without modifying anything; cover it with tests (fresh install →
+clean; hand-edited installed file → drift reported, non-zero exit).
+
+**Tasks:**
+- [ ] Test: lockstep identity of the four behavior files
+- [ ] Implement `install.sh --check` (no-write, reports per-variant drift, exit 1 on drift)
+- [ ] Tests: `--check` clean after install; `--check` detects a modified installed file
+- [ ] Document `--check` in root README
+- [ ] Commit & push
+
+**Done when:** test suite green including the new cases; editing one variant file by hand makes the lockstep test fail; `install.sh --check` distinguishes clean from drifted installs.
+
+### Phase H — Hardening
+
+#### M14: Executor hardening — preflight, selective staging, Done-when, conventions, resume
+
+**Why:** The executors run fully autonomous with commit+push authority;
+today they can swallow unrelated user work (`git add -A` legacy —
+removed in M12 but with no preflight replacing the safety), close
+milestones without checking the declared exit condition, and produce
+commits that ignore the repo's conventions. Autonomy needs guardrails
+proportional to its blast radius.
+
+**Approach:** Edit the unified TDD.md/IDD.md (and DESIGN.md where
+noted), then sync to codex/. Five behaviors: (1) preflight at
+execution start — if the worktree has uncommitted changes unrelated to
+the devplan, stop and ask once before touching anything; (2) stage
+only files touched by the milestone, never blanket-add; (3) before
+marking a milestone done, verify its **Done when** condition
+explicitly and record the verification in the devplan note; (4) read
+the repo's commit-message convention from `git log` and match it
+(default `MNN: title` when none), including trailers the repo uses;
+(5) resume protocol — on start, if a milestone is half-executed
+(mid-milestone `[x]` tasks or leftover changes), reconcile state
+before continuing; plus the plan-drift rule (a false assumption
+discovered mid-run updates the pending plan with a note, never
+silently drifts). In DESIGN.md: numbering follows the file's existing
+ID scheme (`MNN` is the default for new files, not a mandate over
+existing conventions like `D5-4`).
+
+**Tasks:**
+- [ ] TDD.md + IDD.md: preflight worktree check + resume protocol section
+- [ ] TDD.md + IDD.md: selective staging rule
+- [ ] TDD.md + IDD.md: Done-when verification step before marking done
+- [ ] TDD.md + IDD.md: commit-convention detection rule
+- [ ] TDD.md + IDD.md: plan-drift rule (already partially in merged text — make it a numbered loop step)
+- [ ] DESIGN.md: ID-scheme flexibility in the numbering rules
+- [ ] Sync to codex/, lockstep test green
+- [ ] Commit & push
+
+**Done when:** both executors document all five behaviors, DESIGN.md
+accepts non-MNN schemes, lockstep test green.
+
+#### M15: Router/design polish — adaptive language, workspace awareness, handoff
+
+**Why:** Italian is hardcoded in a published skill (router question,
+approval words, proposal template) while the milestone format is
+English; discovery assumes a single repo; design mode ends without
+telling the user how to execute.
+
+**Approach:** Language rule stated once in SKILL.md (chat interactions
+in the user's language; devplan file content in English unless the
+project's existing devplan uses another language) — Italian strings
+become examples, not prescriptions. DESIGN.md discovery: when the
+target directory contains multiple git checkouts (sibling-repo
+workspace), enumerate them, confirm scope, locate the devplan home.
+DESIGN.md phase 5: after validation passes, suggest the execution
+handoff (`/devplan TDD <path>`). Sync to codex/.
+
+**Tasks:**
+- [ ] SKILL.md: language-adaptive rule; router question + approval words become language-neutral with examples
+- [ ] DESIGN.md: proposal template section names language-adaptive (keep structure)
+- [ ] DESIGN.md: multi-repo workspace bullet in discovery sources
+- [ ] DESIGN.md: execution-handoff suggestion at the end of validation
+- [ ] Sync to codex/, lockstep test green
+- [ ] Commit & push
+
+**Done when:** no prescriptive Italian remains in behavior files,
+discovery handles a multi-repo workspace, design mode ends with the
+handoff suggestion, all tests green.
+
+## Out of scope for v0.2
+
+- Templating/build machinery for variants (inline neutral phrasing instead)
+- CI on GitHub Actions (tests run locally; revisit if the repo gains contributors)
+- `uninstall` command, auto-update, telemetry (unchanged from v0.1)

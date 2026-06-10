@@ -24,7 +24,7 @@ When invoked, `devplan` routes to one of three modes:
 In execution modes (TDD/IDD) the skill:
 
 1. Discovers and writes tests at all relevant levels (unit, integration, functional, e2e — whatever the project uses)
-2. Runs `/simplify` to clean up code and tests
+2. Simplifies code and tests without changing behavior (via `/simplify` when available)
 3. Updates documentation
 4. Updates the devplan checkboxes
 5. Commits and pushes after each milestone

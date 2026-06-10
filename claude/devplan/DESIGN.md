@@ -67,10 +67,11 @@ Estimate the likely number of milestones from the request:
 2. **Surface area** — grep/glob for files likely touched by the
    request. Use terms from the user's description.
    *(always needed)*
-3. **Project docs** — read `CLAUDE.md` (root + global if available),
-   `README.md`, and any docs relevant to the request (e.g.
-   `docs/architecture.md`, `docs/data-model.md`).
-   *(medium+ scale)*
+3. **Project docs** — read the project's instruction files
+   (`CLAUDE.md` — root and global — for Claude Code; `AGENTS.md` /
+   `.codex/instructions.md` for Codex), `README.md`, and any docs
+   relevant to the request (e.g. `docs/architecture.md`,
+   `docs/data-model.md`). *(medium+ scale)*
 4. **Git context** — `git log --oneline -20`, `git status`, current
    branch. *(medium+ scale)*
 5. **Test inventory** — scan for test directories and levels (unit,

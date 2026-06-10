@@ -2,107 +2,167 @@
 
 ## Operating mode
 
+- **Everything is pre-approved.** Never ask for confirmation between
+  milestones; run fully autonomously from start to finish.
 - Treat the devplan as the source of truth for scope and ordering.
 - Work milestone by milestone; do not batch unrelated milestones together.
-- Be highly autonomous inside the current permissions and repository state.
-- In Codex, check repo-local instructions before editing (`AGENTS.md`,
-  `.codex/instructions.md`, `README.md`, contributor docs).
-- Do not stop for routine confirmations. Stop only for real blockers:
+- Before editing, check the project's instruction files (`CLAUDE.md` —
+  root and global — for Claude Code; `AGENTS.md` / `.codex/instructions.md`
+  for Codex) plus `README.md` and contributor docs.
+- If a milestone is too large → decompose it internally into safe
+  substeps and complete them without asking the user to do project
+  management.
+- If something is ambiguous → pick the most reasonable interpretation
+  and proceed.
+- Stop and ask the user **only** for real blockers:
   - missing or contradictory devplan requirements
   - changes that would conflict with unknown user work
   - required escalation the environment cannot perform automatically
-- Prefer implementing the next concrete milestone over proposing a plan.
 
-## Execution loop
+---
 
-For each milestone:
+## Execution loop (repeat for each milestone)
 
-1. Read the milestone carefully.
-2. Validate that the milestone is executable with high confidence. Prefer
-   milestones that include `Why`, `Approach`, `Tasks`, and `Done when`. If the
-   plan is simpler, infer the missing structure only when the requirement is
-   still unambiguous from the heading and tasks.
-3. Identify prerequisites from previous milestones and current code state.
-4. Announce the milestone briefly: `▶ Milestone X: [name] (IDD)`.
-5. Implement the code.
-6. Add or update tests at the right levels (see Test policy). Tests are
-   written AFTER the implementation and must PASS immediately.
-7. Run the tests you can run locally.
-8. Tighten/simplify the implementation if needed without changing behavior.
-   Re-run tests after simplification.
-9. Update documentation that the milestone affects.
-10. Update the devplan checkbox/status and note important deviations.
-11. Commit and push if the repository/session allows it.
-12. Move directly to the next milestone unless blocked.
+### 1. 📋 Plan
+
+- Read the current milestone from the devplan.
+- Validate that it is executable with high confidence. Prefer milestones
+  that include `Why`, `Approach`, `Tasks`, and `Done when`. If the plan
+  is simpler, infer the missing structure only when the requirement is
+  still unambiguous from the heading and tasks.
+- Identify prerequisites from previous milestones and the current code
+  state.
+- Announce: *"▶ Milestone X: [name] (IDD)"*
+
+### 2. 🛠️ Develop
+
+- Implement the required code.
+- Keep it functional but not over-engineered — simplification comes
+  later.
+
+### 3. 🧪 Tests — written AFTER, must pass
+
+Write tests at all applicable levels (see Test policy below) covering
+the finished code. Tests are written AFTER the implementation and must
+PASS immediately. Unit tests must be green before proceeding.
+
+### 4. ✨ Simplify
+
+- Run `/simplify` if the environment provides it; otherwise do an
+  explicit simplification pass on code + tests by hand.
+- Structure only, no behavior changes.
+- Re-run tests: they must stay green.
+
+### 5. 📝 Update documentation
+
+- Update README, docstrings, diagrams — all reflecting the final code.
+- If the milestone adds a public API or interface, document it explicitly.
+
+### 6. ✅ Update the devplan
+
+- Mark the milestone as done:
+  `- [x] Milestone X: Name ✅`
+- Note important deviations or decisions made.
+- Keep the devplan accurate enough that another agent could resume
+  from it.
+- If you discover the milestone is incomplete or the proposed fix is
+  insufficient, update the devplan with the missing work instead of
+  silently drifting.
+
+### 7. 📦 Commit & push
+
+- Stage the milestone's changes and commit with a descriptive message
+  (e.g. `Milestone X: [name]`).
+- Push to the active branch when network/auth/repo policy allows it.
+- If push or commit requires escalation, authentication, or network
+  access not currently available, record the exact blocker in the
+  devplan and surface it clearly — then continue with the next
+  milestone only if that is safe.
+- Never rewrite or discard unrelated user changes.
+- Announce: *"✅ Milestone X complete — moving to Milestone Y"* and
+  **immediately proceed to the next milestone**.
+
+---
 
 ## Test policy
 
-Discover the project's real test structure first. Check:
+**First run (once per devplan execution):** discover the project's real
+test structure. Check:
 
-- `tests/` layout
+- `tests/` layout (e.g. `tests/unit/`, `tests/integration/`,
+  `tests/live/`, `tests/functional/`, `tests/e2e/`)
 - test README or contributor docs
-- project scripts (`Makefile`, `package.json`, `justfile`, CI config, custom runners)
+- project scripts (`Makefile`, `package.json`, `justfile`, CI config,
+  custom runners) to learn how each level is organized and run
 
 Then apply this rule:
 
-- Always add unit coverage for new logic when unit tests exist.
-- Add higher-level tests when the milestone changes user-visible behavior, cross-module integration, workflows, or recovery paths.
-- Prefer the highest already-established level in the repo:
-  - integration
-  - live
-  - functional
-  - e2e
-- If a higher-level test cannot be run locally, still write it when justified, validate collection/parsing if possible, and record that it needs a real run.
+- **Always add unit coverage** for new logic. Cover: happy path, edge
+  cases, error cases. Everything external is mocked.
+- Add higher-level tests when the milestone changes user-visible
+  behavior, cross-module integration, workflows, or recovery paths.
+  Prefer the highest already-established level in the repo
+  (integration, live, functional, e2e).
+- For tests that cannot be run locally (credentials, external services,
+  special infrastructure): write them when justified, verify they parse
+  (`--collect-only` or equivalent), and note in the devplan that they
+  need a manual run.
 
-Avoid overfitting tests to a single prompt or log line. Test the behavioral class instead.
+Avoid overfitting tests to a single prompt or log line. Test the
+behavioral class instead.
+
+In IDD mode, tests are written AFTER the implementation and must PASS
+immediately.
 
 ## Implementation standards
 
-- Prefer general runtime fixes over prompt-only tweaks when the failure is structurally detectable.
+- Prefer general runtime fixes over prompt-only tweaks when the failure
+  is structurally detectable.
 - Avoid special cases that exist only to satisfy one test.
 - Keep changes narrow, composable, and reversible.
-- Preserve existing user-facing behavior unless the milestone explicitly changes it.
-- If a milestone is too large, decompose it internally into safe substeps and complete them without asking the user to do project management.
+- Preserve existing user-facing behavior unless the milestone
+  explicitly changes it.
 
-## Devplan updates
-
-After finishing a milestone:
-
-- mark checklist items complete
-- add brief notes on key decisions or justified deviations
-- keep the devplan accurate enough that another agent could resume from it
-
-If you discover the milestone is incomplete or the proposed fix is insufficient, update the devplan with the missing work instead of silently drifting.
-
-## Git behavior
-
-- Commit after each completed milestone.
-- Push after each completed milestone when network/auth/repo policy allows it.
-- If push or commit requires escalation, authentication, or network access not currently available, treat that as an operational blocker and surface it clearly.
-- Never rewrite or discard unrelated user changes.
-
-The milestone is complete only after:
-
-1. relevant tests were run or accounted for
-2. the devplan was updated
-3. changes were committed
-4. the commit was pushed, or the exact push blocker was recorded clearly
+---
 
 ## Completion
 
-When the requested devplan scope is finished:
+When all milestones are done:
 
-- run the broadest local test set that is practical
-- summarize completed milestones (Mode: IDD)
-- report tests run, tests not run, and residual risks
-- call out any follow-up work already added back into the devplan
-- ensure the final completed state has already been committed and pushed
+1. Run the broadest local test set that is practical (all levels you
+   can run locally) to verify everything works together.
+2. Show the final recap:
 
-## Reminders
+```
+🎉 DevPlan complete!
+Mode: IDD
+Milestones: X/X ✅
+Tests: all green ✅
+Documentation: updated ✅
 
-- Do not turn execution into a long planning exercise.
-- Do not mark a milestone done if its relevant tests are still red.
-- Do not stop after code changes without checking whether docs/devplan/tests also need updates.
-- Do not ignore functional/regression implications when a milestone changes planner, prompts, recovery, or file/workflow behavior.
-- Do not use IDD as an excuse for vague scope; the milestone still needs a
-  concrete objective and observable completion state.
+[list of milestones with one-line summary each]
+[tests written but not run locally, and why]
+[any intentional TODOs, tech debt, or residual risks left behind]
+[follow-up work already added back into the devplan]
+```
+
+3. Ensure the final completed state has already been committed and
+   pushed (or the exact blocker recorded in the devplan).
+
+---
+
+## Rules
+
+- ❌ Never mark a milestone done if its relevant tests are not green
+- ❌ Never ask for approval between milestones
+- ❌ Never prompt "Do you want to proceed?" — everything is pre-approved
+- ❌ Do not turn execution into a long planning exercise
+- ❌ Do not use IDD as an excuse for vague scope; the milestone still
+  needs a concrete objective and observable completion state
+- ✅ Tests are written AFTER the code, must PASS immediately
+- ✅ Ambiguity → choose and proceed
+- ✅ Milestone too large → decompose internally without flagging it
+- ✅ The devplan is the source of truth — note any deviations in it
+- ✅ Commit and push after every milestone, always on the current
+  active branch
+- 🛑 Stop ONLY for blocking errors you cannot resolve autonomously
