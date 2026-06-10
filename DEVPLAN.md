@@ -590,14 +590,19 @@ ID scheme (`MNN` is the default for new files, not a mandate over
 existing conventions like `D5-4`).
 
 **Tasks:**
-- [ ] TDD.md + IDD.md: preflight worktree check + resume protocol section
-- [ ] TDD.md + IDD.md: selective staging rule
-- [ ] TDD.md + IDD.md: Done-when verification step before marking done
-- [ ] TDD.md + IDD.md: commit-convention detection rule
-- [ ] TDD.md + IDD.md: plan-drift rule (already partially in merged text — make it a numbered loop step)
-- [ ] DESIGN.md: ID-scheme flexibility in the numbering rules
-- [ ] Sync to codex/, lockstep test green
-- [ ] Commit & push
+- [x] TDD.md + IDD.md: preflight worktree check + resume protocol section
+- [x] TDD.md + IDD.md: selective staging rule
+- [x] TDD.md + IDD.md: Done-when verification step before marking done (new dedicated loop step + Rules entries)
+- [x] TDD.md + IDD.md: commit-convention detection rule (in preflight + commit step)
+- [x] TDD.md + IDD.md: plan-drift rule — kept as bullet inside "Update the devplan" (a dedicated numbered step added no value), strengthened with "never rewrite completed milestones"
+- [x] DESIGN.md: ID-scheme flexibility in the numbering rules
+- [x] Sync to codex/, lockstep test green
+- [x] Commit & push
+
+**Notes:** Executed in IDD mode (playbook content; the sync contract is
+covered by M13's lockstep test, green: 4/4 + 24/24). "Done when"
+verified by re-reading both executors: all five behaviors documented,
+DESIGN accepts non-MNN schemes.
 
 **Done when:** both executors document all five behaviors, DESIGN.md
 accepts non-MNN schemes, lockstep test green.

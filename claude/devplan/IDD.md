@@ -21,6 +21,26 @@
 
 ---
 
+## Preflight (once, before the first milestone)
+
+- **Clean-worktree check.** Run `git status`. If the worktree contains
+  uncommitted changes unrelated to this devplan's work, STOP and ask
+  the user how to proceed (stash, commit, or include) — this falls
+  under the "conflict with unknown user work" blocker. Unrelated work
+  must never end up inside a milestone commit.
+- **Resume detection.** If a pending milestone already has `[x]` tasks,
+  or leftover changes match its scope, a previous run stopped midway.
+  Reconcile against the actual code state (verify which tasks are
+  truly done), note the resume in the devplan, and continue from the
+  real state instead of redoing or skipping work.
+- **Commit convention.** Read the repo's commit-message convention from
+  recent history (`git log --oneline -20`): milestone-ID prefix style
+  (e.g. `M12: title`, `D5-4: title`) and any trailers used
+  consistently. Use it for every milestone commit; default to
+  `MNN: <title>` if the repo has no clear convention.
+
+---
+
 ## Execution loop (repeat for each milestone)
 
 ### 1. 📋 Plan
@@ -58,21 +78,34 @@ PASS immediately. Unit tests must be green before proceeding.
 - Update README, docstrings, diagrams — all reflecting the final code.
 - If the milestone adds a public API or interface, document it explicitly.
 
-### 6. ✅ Update the devplan
+### 6. 🎯 Verify "Done when"
+
+- Verify the milestone's **Done when** condition explicitly — run the
+  command, hit the endpoint, observe the behavior it describes. Green
+  tests alone do not count unless the condition says exactly that.
+- If the condition cannot be verified locally (needs credentials,
+  external services), record precisely what remains to be verified
+  manually.
+
+### 7. ✅ Update the devplan
 
 - Mark the milestone as done:
   `- [x] Milestone X: Name ✅`
-- Note important deviations or decisions made.
+- Note important deviations, decisions made, and how "Done when" was
+  verified.
 - Keep the devplan accurate enough that another agent could resume
   from it.
 - If you discover the milestone is incomplete or the proposed fix is
   insufficient, update the devplan with the missing work instead of
-  silently drifting.
+  silently drifting. Never rewrite completed (`- [x]`) milestones —
+  plan corrections land in the pending ones or in a note.
 
-### 7. 📦 Commit & push
+### 8. 📦 Commit & push
 
-- Stage the milestone's changes and commit with a descriptive message
-  (e.g. `Milestone X: [name]`).
+- Stage ONLY the files touched by this milestone (explicit paths —
+  never `git add -A` / `git add .`).
+- Commit following the repo's convention detected in preflight
+  (default `MNN: <title>`).
 - Push to the active branch when network/auth/repo policy allows it.
 - If push or commit requires escalation, authentication, or network
   access not currently available, record the exact blocker in the
@@ -159,10 +192,14 @@ Documentation: updated ✅
 - ❌ Do not turn execution into a long planning exercise
 - ❌ Do not use IDD as an excuse for vague scope; the milestone still
   needs a concrete objective and observable completion state
+- ❌ Never mark a milestone done without verifying its **Done when**
+  condition
+- ❌ Never stage with `git add -A` / `git add .` — explicit paths only
 - ✅ Tests are written AFTER the code, must PASS immediately
 - ✅ Ambiguity → choose and proceed
 - ✅ Milestone too large → decompose internally without flagging it
 - ✅ The devplan is the source of truth — note any deviations in it
+- ✅ Match the repo's commit-message convention (detected in preflight)
 - ✅ Commit and push after every milestone, always on the current
   active branch
 - 🛑 Stop ONLY for blocking errors you cannot resolve autonomously

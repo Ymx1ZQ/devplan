@@ -202,8 +202,11 @@ new milestones come after the pending ones they depend on.
   Phase 3.
 
 #### Numbering
-- Read the last `MNN` in the target file.
-- Continue from `MNN+1`. Never reset numbering.
+- Follow the target file's **existing milestone ID scheme** (e.g.
+  `M12`, `D5-4`, `SEC-3`) — read the last ID and continue it. `MNN`
+  is the default for new files, not a mandate over an established
+  convention.
+- Continue from the last ID. Never reset numbering.
 - If the file is empty or new, start from `M1`.
 
 #### Milestone format
